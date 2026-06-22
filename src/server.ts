@@ -2,8 +2,10 @@ import express from "express";
 import { pinoHttp } from "pino-http";
 import { ZodError } from "zod";
 import { config } from "./config.js";
+import { ShipHeroRequestError } from "./connectors/shipheroClient.js";
 import { logger } from "./logger.js";
 import { adobeRouter } from "./routes/adobe.js";
+import { shipheroRouter } from "./routes/shiphero.js";
 import { shipheroWebhookRouter } from "./routes/shipheroWebhook.js";
 
 const app = express();
@@ -16,11 +18,21 @@ app.get("/health", (_req, res) => {
 });
 
 app.use("/api/adobe", adobeRouter);
+app.use("/api/shiphero", shipheroRouter);
 app.use("/webhooks/shiphero", shipheroWebhookRouter);
 
 app.use((error: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   if (error instanceof ZodError) {
     res.status(400).json({ error: "invalid payload", details: error.flatten() });
+    return;
+  }
+
+  if (error instanceof ShipHeroRequestError) {
+    res.status(error.statusCode).json({
+      error: "shiphero request failed",
+      status_code: error.statusCode,
+      details: error.errors?.map((item) => item.message) ?? []
+    });
     return;
   }
 

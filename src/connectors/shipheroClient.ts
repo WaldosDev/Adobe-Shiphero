@@ -7,6 +7,17 @@ type GraphQlResponse<T> = {
   errors?: Array<{ message: string; path?: string[] }>;
 };
 
+export class ShipHeroRequestError extends Error {
+  constructor(
+    message: string,
+    readonly statusCode: number,
+    readonly errors?: Array<{ message: string; path?: string[] }>
+  ) {
+    super(message);
+    this.name = "ShipHeroRequestError";
+  }
+}
+
 export class ShipHeroClient {
   async request<T>(query: string, variables: Record<string, unknown> = {}): Promise<T> {
     const response = await fetch(config.SHIPHERO_GRAPHQL_URL, {
@@ -21,7 +32,7 @@ export class ShipHeroClient {
     const body = (await response.json()) as GraphQlResponse<T>;
     if (!response.ok || body.errors?.length) {
       logger.error({ statusCode: response.status, errors: body.errors }, "ShipHero GraphQL request failed");
-      throw new Error("ShipHero GraphQL request failed");
+      throw new ShipHeroRequestError("ShipHero GraphQL request failed", response.status, body.errors);
     }
 
     return body.data as T;
@@ -61,6 +72,28 @@ export class ShipHeroClient {
     return this.request(mutation, {
       data: mapAdobeOrderToShipHero(order)
     });
+  }
+
+  async getAccountWarehouses() {
+    const query = `
+      query GetAccountWarehouses {
+        account {
+          request_id
+          complexity
+          data {
+            id
+            warehouses {
+              id
+              legacy_id
+              identifier
+              profile
+            }
+          }
+        }
+      }
+    `;
+
+    return this.request(query);
   }
 }
 

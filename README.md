@@ -80,6 +80,16 @@ Respuesta esperada:
 
 En la terminal del worker debe aparecer un log similar a `Dry run: skipping ShipHero order_create`.
 
+## Validar token ShipHero sin escribir datos
+
+Con `npm run dev` activo, puedes validar el token de ShipHero con una consulta read-only:
+
+```bash
+curl http://localhost:8080/api/shiphero/account
+```
+
+Este endpoint consulta cuenta y warehouses en ShipHero. No crea pedidos ni modifica inventario.
+
 ## Payload base de pedido
 
 ```bash
