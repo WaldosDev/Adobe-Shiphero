@@ -4,6 +4,14 @@ import type { InventoryPayload, TrackingPayload } from "../types/payloads.js";
 
 export class AdobeClient {
   async registerShipment(payload: TrackingPayload) {
+    if (config.DRY_RUN_EXTERNAL_APIS) {
+      logger.info(
+        { order_number: payload.order_number, shipment_id: payload.shipment_id },
+        "Dry run: skipping Adobe shipment registration"
+      );
+      return { dry_run: true, order_number: payload.order_number, shipment_id: payload.shipment_id };
+    }
+
     return this.post(`/rest/V1/order/${payload.order_number}/ship`, {
       shipment_id: payload.shipment_id,
       carrier: payload.carrier,
@@ -15,6 +23,14 @@ export class AdobeClient {
   }
 
   async updateInventory(payload: InventoryPayload) {
+    if (config.DRY_RUN_EXTERNAL_APIS) {
+      logger.info(
+        { sku: payload.sku, adobe_source: payload.adobe_source, available: payload.available },
+        "Dry run: skipping Adobe inventory update"
+      );
+      return { dry_run: true, sku: payload.sku, adobe_source: payload.adobe_source };
+    }
+
     return this.post("/rest/V1/inventory/source-items", {
       sourceItems: [
         {

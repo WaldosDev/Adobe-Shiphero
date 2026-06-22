@@ -10,7 +10,11 @@ const schema = z.object({
   SHIPHERO_BEARER_TOKEN: z.string().min(1),
   ADOBE_BASE_URL: z.string().url(),
   ADOBE_ACCESS_TOKEN: z.string().min(1),
-  WEBHOOK_SHARED_SECRET: z.string().min(1)
+  WEBHOOK_SHARED_SECRET: z.string().min(1),
+  DRY_RUN_EXTERNAL_APIS: z
+    .enum(["true", "false"])
+    .default("false")
+    .transform((value) => value === "true")
 });
 
 export const config = schema.parse(process.env);

@@ -22,5 +22,9 @@ export const integrationQueue = new Queue("integration-events", {
 });
 
 export async function enqueueIntegrationEvent(name: QueueJobName, payload: unknown, jobId: string) {
-  return integrationQueue.add(name, payload, { jobId });
+  return integrationQueue.add(name, payload, { jobId: toBullMqJobId(jobId) });
+}
+
+function toBullMqJobId(jobId: string): string {
+  return jobId.replaceAll(":", "__");
 }

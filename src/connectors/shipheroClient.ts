@@ -28,6 +28,23 @@ export class ShipHeroClient {
   }
 
   async createOrder(order: AdobeOrderPayload) {
+    if (config.DRY_RUN_EXTERNAL_APIS) {
+      logger.info(
+        { order_number: order.order_number, warehouse: order.warehouse, items: order.items.length },
+        "Dry run: skipping ShipHero order_create"
+      );
+      return {
+        order_create: {
+          request_id: `dry-run-shiphero-${order.order_number}`,
+          complexity: 0,
+          order: {
+            id: `dry-run-${order.order_number}`,
+            order_number: order.order_number
+          }
+        }
+      };
+    }
+
     const mutation = `
       mutation CreateOrder($data: OrderCreateInput!) {
         order_create(data: $data) {

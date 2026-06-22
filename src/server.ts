@@ -24,7 +24,7 @@ app.use((error: unknown, _req: express.Request, res: express.Response, _next: ex
     return;
   }
 
-  logger.error({ error }, "Unhandled API error");
+  logger.error({ err: error }, "Unhandled API error");
   res.status(500).json({ error: "internal server error" });
 });
 

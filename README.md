@@ -36,6 +36,50 @@ Healthcheck:
 curl http://localhost:8080/health
 ```
 
+## Prueba segura antes de productivo
+
+Para validar el flujo sin crear pedidos en ShipHero ni actualizar Adobe, deja esta bandera en `.env`:
+
+```bash
+DRY_RUN_EXTERNAL_APIS=true
+```
+
+Con la API, Redis y el worker corriendo, envía un pedido de prueba:
+
+```bash
+curl -X POST http://localhost:8080/api/adobe/orders \
+  -H "content-type: application/json" \
+  -d '{
+    "order_number": "TEST-100000125",
+    "source": "Adobe Commerce",
+    "warehouse": "Waldos Ecommerce",
+    "customer": {
+      "name": "Cliente Prueba",
+      "email": "cliente@dominio.com",
+      "phone": "5512345678"
+    },
+    "shipping_address": {
+      "street1": "Calle 1",
+      "city": "Ciudad de México",
+      "state": "CDMX",
+      "postal_code": "01234",
+      "country": "MX"
+    },
+    "shipping_method": "ESTAFETA_STANDARD",
+    "items": [
+      { "sku": "SKU123", "quantity": 2, "name": "Producto ejemplo" }
+    ]
+  }'
+```
+
+Respuesta esperada:
+
+```json
+{"accepted":true,"request_id":"order:TEST-100000125"}
+```
+
+En la terminal del worker debe aparecer un log similar a `Dry run: skipping ShipHero order_create`.
+
 ## Payload base de pedido
 
 ```bash
